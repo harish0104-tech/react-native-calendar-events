@@ -1,0 +1,41 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '16'
+      - name: Install Android SDK packages
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-29" "build-tools;29.0.2"
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '11'
+      - name: Install dependencies
+        working-directory: example
+        run: |
+          npm install --global yarn@1.22.22
+          yarn install --frozen-lockfile --ignore-scripts
+          yarn jetify
+      - name: Build standalone demo APK
+        working-directory: example/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon --stacktrace
+      - name: Save APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: calendar-demo-apk
+          path: example/android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
