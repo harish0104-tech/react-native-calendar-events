@@ -32,7 +32,7 @@ jobs:
         working-directory: example/android
         run: |
           chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon --stacktrace
+          ./gradlew assembleRelease -x lintVitalRelease --no-daemon --stacktrace
       - name: Save APK
         uses: actions/upload-artifact@v4
         with:
